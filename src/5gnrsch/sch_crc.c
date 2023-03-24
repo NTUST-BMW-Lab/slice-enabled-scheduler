@@ -49,6 +49,7 @@ uint8_t SchProcCrcInd(Pst *pst, CrcIndInfo *crcInd)
    Inst  schInst = pst->dstInst - SCH_INST_START;
    SchCellCb *cell = schCb[schInst].cells[schInst];
    
+   DU_LOG("\nDennis [CRC] --> Receive CRC Indication");
    while(count  <crcInd->numCrcInd)
    {
       GET_UE_ID(crcInd->crnti, ueId);

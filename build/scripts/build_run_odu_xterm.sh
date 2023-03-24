@@ -7,6 +7,7 @@ ODU_PATH=/home/oran/slice_sch/l2
 # Build odu
 cd $ODU_PATH/build/odu
 make clean_odu
+#make clean_all
 make odu MACHINE=BIT64 MODE=FDD
 #make cu_stub MACHINE=BIT64 NODE=TEST_STUB MODE=FDD
 #make ric_stub MACHINE=BIT64 NODE=TEST_STUB MODE=FDD
@@ -20,6 +21,6 @@ sleep 3
 cd odu 
 echo "Start record '$d.log' log"
 ./odu > $ODU_PATH/../log/$d.log
-
+#gdb ./odu
 
 

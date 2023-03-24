@@ -1270,9 +1270,8 @@ uint8_t SchProcDlHarqInd(Pst *pst, DlHarqInd *dlHarqInd)
    SchUeCb   *ueCb;
    SchCellCb *cellCb = schCb[inst].cells[inst];
 
-   DU_LOG("\nDEBUG  -->  SCH : Received HARQ");
-
    ueCb = schGetUeCb(cellCb, dlHarqInd->crnti);
+   DU_LOG("\nDEBUG  -->  SCH : Received HARQ, UE ID:%d", ueCb->ueId);
 
    if(ueCb->state == SCH_UE_STATE_INACTIVE)
    {

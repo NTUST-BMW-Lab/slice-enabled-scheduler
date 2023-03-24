@@ -50,6 +50,8 @@ typedef struct schSliceBasedUeCb
 }SchSliceBasedUeCb;
 
 uint8_t schSliceBasedAddUeToSchedule(SchCellCb *cellCb, uint16_t ueIdToAdd);
+void schSliceBasedDlScheduling(SchCellCb *cellCb, SlotTimingInfo currTime);
+bool schSliceBasedFillBoGrantDlSchedInfo(SchCellCb *cell, SlotTimingInfo currTime, uint8_t ueId, bool isRetx, SchDlHqProcCb **hqP);
 void schSliceBasedAllApisInit(SchAllApis *allSliceBasedApi);
 
 /**********************************************************************
