@@ -659,8 +659,6 @@ uint8_t SchProcSlotInd(Pst *pst, SlotTimingInfo *slotInd)
       return RFAILED;
    }
 
-   DU_LOG("\nDEBUG  --> SCH : Slot Indication received. [%d : %d]", slotInd->sfn, slotInd->slot);
-
    memset(&dlSchedInfo, 0, sizeof(DlSchedInfo));
    schCalcSlotValues(*slotInd, &dlSchedInfo.schSlotValue, cell->numSlots);
    dlBrdcstAlloc = &dlSchedInfo.brdcstAlloc;

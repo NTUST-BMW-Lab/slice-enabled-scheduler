@@ -1320,19 +1320,17 @@ void schSliceBasedScheduleSlot(SchCellCb *cell, SlotTimingInfo *slotInd, Inst sc
 
    schSpcCell = (SchSliceBasedCellCb *)cell->schSpcCell;
    
-   // if(schSpcCell->isTimerStart)
-   // {
-   //    setRrmPolicyWithTimer(cell);
-   // }
+   if(schSpcCell->isTimerStart)
+   {
+      setRrmPolicyWithTimer(cell);
+   }
 
-   DU_LOG("\nDennis  --> SCH Slice Based Scheduler: Slot Indication received. [%d : %d]", slotInd->sfn, slotInd->slot);
    /* Select first UE in the linked list to be scheduled next */
    pendingUeNode = schSpcCell->ueToBeScheduled.first;
    if(pendingUeNode)
    {
       if(pendingUeNode->node)
       {
-         DU_LOG("\nDennis  --> SCH Has UE to be scheduled. [%d : %d]", slotInd->sfn, slotInd->slot);
          ueId = *(uint8_t *)(pendingUeNode->node);
          schSpcUeCb = (SchSliceBasedUeCb *)cell->ueCb[ueId-1].schSpcUeCb;
 
@@ -1425,7 +1423,7 @@ void schSliceBasedScheduleSlot(SchCellCb *cell, SlotTimingInfo *slotInd, Inst sc
                /* DL Data new transmission */
                if((cell->boIndBitMap) & (1<<ueId))
                {
-                  DU_LOG("\nDennis  --> SCH Has UE to be scheduled New DL. [%d : %d]", slotInd->sfn, slotInd->slot);
+                  // DU_LOG("\nDennis  --> SCH Has UE to be scheduled New DL. [%d : %d]", slotInd->sfn, slotInd->slot);
                   isDlMsgPending = true;
                   //isDlMsgScheduled = schFillBoGrantDlSchedInfo(cell, *slotInd, ueId, FALSE, &hqP);
                   isDlMsgScheduled = schSliceBasedDlScheduling(cell, *slotInd, ueId, FALSE, &hqP);
@@ -2523,19 +2521,19 @@ uint8_t schSliceBasedDlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo pdschTi
          {
             SCH_FREE(dciSlotAlloc, sizeof(DlMsgSchInfo));
             cellCb->schDlSlotInfo[pdcchTime.slot]->dlMsgAlloc[ueId -1] = NULL;
-         }
-         if (isRetx != TRUE)
-         {
-            accumalatedSize += TX_PAYLOAD_HDR_LEN;
-         }
-         numPRB = schCalcNumPrb(accumalatedSize, ueCb->ueCfg.dlModInfo.mcsIndex, pdschNumSymbols);
-         //DU_LOG("\nJOJO  -->  UE id: %d, is allocated %d PRBs (add header).", ueId, numPRB);
-         startPrb += numPRB; /*JOJO: accumulate start PRB.*/
-
+         }       
          /*JOJO: If failed, traverse next UE.*/
          ueNode = ueNode->next;
          continue;
       }
+  
+      if (isRetx != TRUE)
+      {
+         accumalatedSize += TX_PAYLOAD_HDR_LEN;
+      }
+      numPRB = schCalcNumPrb(accumalatedSize, ueCb->ueCfg.dlModInfo.mcsIndex, pdschNumSymbols);
+      //DU_LOG("\nJOJO  -->  UE id: %d, is allocated %d PRBs (add header).", ueId, numPRB);
+      startPrb += numPRB; /*JOJO: accumulate start PRB.*/
 
       /* Check if both DCI and DL_MSG are sent in the same slot.
       * If not, allocate memory for DL_MSG PDSCH slot to store PDSCH info */
@@ -4196,7 +4194,7 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
       schSpcCell->slot_ind_count = 0;
    }
 
-   if(schSpcCell->timer_sec == 20)
+   if(schSpcCell->timer_sec == 30)
    {
       sliceCbNode = schSpcCell->sliceCbList.first;
       
@@ -4207,16 +4205,18 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
          /* Adjust the RRMPolicyRatio of first slice */
          if(sliceCbNode == schSpcCell->sliceCbList.first)
          {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 70;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+            // sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+            // sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+            // sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+
          }
          /* Adjust the RRMPolicyRatio of second slice */
          else
          {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 30;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+            // sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+            // sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+            // sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+            sliceCb->algorithm = WFQ;
          }
 
          sliceCbNode = sliceCbNode->next;
@@ -4224,55 +4224,55 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
    }
    else if(schSpcCell->timer_sec == 40)
    {
-      sliceCbNode = schSpcCell->sliceCbList.first;
+      // sliceCbNode = schSpcCell->sliceCbList.first;
 
-      while(sliceCbNode)
-      {
-         sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
+      // while(sliceCbNode)
+      // {
+      //    sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
          
-         /* Adjust the RRMPolicyRatio of first slice */
-         if(sliceCbNode == schSpcCell->sliceCbList.first)
-         {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 30;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-         }
-         /* Adjust the RRMPolicyRatio of second slice */
-         else
-         {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 70;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-         }
+      //    /* Adjust the RRMPolicyRatio of first slice */
+      //    if(sliceCbNode == schSpcCell->sliceCbList.first)
+      //    {
+      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+      //       sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+      //    }
+      //    /* Adjust the RRMPolicyRatio of second slice */
+      //    else
+      //    {
+      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+      //       sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+      //    }
 
-         sliceCbNode = sliceCbNode->next;
-      }   
+      //    sliceCbNode = sliceCbNode->next;
+      // }   
    }
    else if(schSpcCell->timer_sec == 60)
    {    
-      sliceCbNode = schSpcCell->sliceCbList.first;
+      // sliceCbNode = schSpcCell->sliceCbList.first;
 
-      while(sliceCbNode)
-      {
-         sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
+      // while(sliceCbNode)
+      // {
+      //    sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
          
-         /* Adjust the RRMPolicyRatio of first slice */
-         if(sliceCbNode == schSpcCell->sliceCbList.first)
-         {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 50;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-         }
-         /* Adjust the RRMPolicyRatio of second slice */
-         else
-         {
-            sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            sliceCb->rrmPolicyRatioInfo.minRatio = 50;
-            sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-         }
+      //    /* Adjust the RRMPolicyRatio of first slice */
+      //    if(sliceCbNode == schSpcCell->sliceCbList.first)
+      //    {
+      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+      //       sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+      //    }
+      //    /* Adjust the RRMPolicyRatio of second slice */
+      //    else
+      //    {
+      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+      //       sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+      //    }
 
-         sliceCbNode = sliceCbNode->next;
-      }
+      //    sliceCbNode = sliceCbNode->next;
+      // }
 
       schSpcCell->timer_sec = 0;
    }

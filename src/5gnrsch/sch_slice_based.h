@@ -17,7 +17,7 @@
 *******************************************************************************/
 
 // #define SCH_MULTI_THREAD /* Enable the multi-thread intra-slice scheduling feature */
-#define SLICE_BASED_DEBUG_LOG /* Enable the debug log */
+// #define SLICE_BASED_DEBUG_LOG /* Enable the debug log */
  
 
 typedef enum

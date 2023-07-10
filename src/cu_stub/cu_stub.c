@@ -375,7 +375,7 @@ uint8_t startDlData()
    uint32_t duId;
    uint8_t ret = ROK;
    uint8_t cnt = 0;
-   uint8_t numOfPackets;
+   uint8_t numOfPackets = 8;
    int32_t totalNumOfTestFlow = 1; 
    EgtpTeIdCb *teidCb = NULLP;
    
@@ -385,19 +385,6 @@ uint8_t startDlData()
       {
          for(teId = 1; teId <= NUM_TUNNEL_TO_PUMP_DATA; teId++)
          {
-            if(teId == 1)
-            {
-               numOfPackets = 8;
-            }
-            else if(teId == 3)
-            {
-               numOfPackets = 8;
-            }
-            else
-            {
-               numOfPackets = 8;
-            }
-
             teidCb = NULLP;
             cmHashListFind(&(egtpCb.dstCb[duId-1].teIdLst), (uint8_t *)&(teId), sizeof(uint32_t), 0, (PTR *)&teidCb);
             if(teidCb)
@@ -452,67 +439,101 @@ uint8_t startDlDataForExperiment12()
    uint32_t tmpTeId = 0;
    uint32_t duId;
    uint8_t numOfSlice = 3;
+   uint8_t numOfPacket;
    uint8_t ret = ROK;
    uint8_t cnt = 0;
    uint8_t i = 0;
-   uint8_t timerCnt = 0;
+   uint16_t timerCnt = 0;
    uint8_t tnlStage = 1;
    int32_t totalNumOfTestFlow; 
    EgtpTeIdCb *teidCb = NULLP;
-   
-   while(timerCnt < 60)
+
+   while(timerCnt < 1200)
    {
-      totalNumOfTestFlow = 15;
+      totalNumOfTestFlow = 1;
       while(totalNumOfTestFlow)
       {
          for(duId = 1; duId <= cuCb.cuCfgParams.egtpParams.numDu; duId++)
          {
-            for(teId = 1; teId <= tnlStage; teId++)
+            for(teId = 1; teId <= 6; teId++)
             {
-               for(i = 0; i < 2; i++) /* Assume each slice has 2 tunnels, the tunnel would be tnId and tnId+3*/
+               if(tnlStage == 1)
                {
-                  if(i == 1)
+                 if(teId == 1 || teId == 4) // Slice 1
                   {
-                     tmpTeId = teId + numOfSlice;
+                     numOfPacket = 8;
+                  }
+                  else if(teId == 2 || teId == 5) // Slice 2
+                  {
+                     numOfPacket = 0;
                   }
                   else
                   {
-                     tmpTeId = teId;
-                  }
-
-                  teidCb = NULLP;
-                  cmHashListFind(&(egtpCb.dstCb[duId-1].teIdLst), (uint8_t *)&(tmpTeId), sizeof(uint32_t), 0, (PTR *)&teidCb);
-                  if(teidCb)
-                  {
-                     cnt =0;
-                     DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, tmpTeId);
-                     while(cnt < NUM_DL_PACKETS)
-                     {
-                        ret =  cuEgtpDatReq(duId, tmpTeId);      
-                        if(ret != ROK)
-                        {
-                           DU_LOG("\nERROR --> EGTP: Issue with teid=%d\n",tmpTeId);
-                           break;
-                        }
-                        /* TODO : sleep(1) will be removed later once we will be able to
-                        * support the continuous data pack transfer */
-                        //sleep(1);
-                        cnt++;
-                     }
-                  }
-                  else
-                  {
-                     DU_LOG("\nDEBUG  -->  EGTP: TunnelId Not Found for (duId %d, teId:%d)\n", duId, tmpTeId);
+                     numOfPacket = 0;
                   }
                }
+               else if(tnlStage == 2)
+               {
+                  if(teId == 1 || teId == 4) // Slice 1
+                  {
+                     numOfPacket = 6;
+                  }
+                  else if(teId == 2 || teId == 5) // Slice 2
+                  {
+                     numOfPacket = 3;
+                  }
+                  else
+                  {
+                     numOfPacket = 0;
+                  }
+               }
+               else
+               {
+                  if(teId == 1 || teId == 4) // Slice 1
+                  {
+                     numOfPacket = 4;
+                  }
+                  else if(teId == 2 || teId == 5) // Slice 2
+                  {
+                     numOfPacket = 3;
+                  }
+                  else
+                  {
+                     numOfPacket = 3;
+                  }
+               }
+               teidCb = NULLP;
+               cmHashListFind(&(egtpCb.dstCb[duId-1].teIdLst), (uint8_t *)&(teId), sizeof(uint32_t), 0, (PTR *)&teidCb);
+               if(teidCb)
+               {
+                  cnt =0;
+                  //DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, teId);
+                  while(cnt < numOfPacket)
+                  {
+                     ret =  cuEgtpDatReq(duId, teId);      
+                     if(ret != ROK)
+                     {
+                        DU_LOG("\nERROR --> EGTP: Issue with teid=%d\n",teId);
+                        break;
+                     }
+                     /* TODO : sleep(1) will be removed later once we will be able to
+                     * support the continuous data pack transfer */
+                     //sleep(1);
+                     cnt++;
+                  }
+               }
+               else
+               {
+                  DU_LOG("\nDEBUG  -->  EGTP: TunnelId Not Found for (duId %d, teId:%d)\n", duId, teId);
+               }            
             }
          }
          totalNumOfTestFlow--;
       }
-      sleep(1);
+      usleep(50000);
       timerCnt++;
       DU_LOG("\nDEBUG  -->  Timer Count: %d\n", timerCnt);
-      if(timerCnt % 20 == 0)
+      if(timerCnt % 400 == 0)
       {
          DU_LOG("\nDEBUG  -->  tnlStage: %d\n", tnlStage);
          tnlStage++;
@@ -566,7 +587,7 @@ uint8_t startDlDataForExperiment11()
                }
                else if(tnlStage == 2)
                {
-                  if(teId == 1 || teId == 3)
+                  if(teId == 1 || teId == 3) // Slice 1
                   {
                      numOfPacket = 7;
                   }
@@ -577,7 +598,7 @@ uint8_t startDlDataForExperiment11()
                }
                else
                {
-                  if(teId == 2 || teId == 4)
+                  if(teId == 2 || teId == 4) // Slice 2
                   {
                      numOfPacket = 7;
                   }
@@ -628,6 +649,226 @@ uint8_t startDlDataForExperiment11()
 
 /*******************************************************************
  *
+ * @brief start Dl data for slice testing
+ *
+ * @details
+ *
+ *    Function : startDlDataForExperiment11
+ *
+ *    Functionality: start the downlink data to generate packet accordingly
+ *
+ * @params[in] 
+ * @return ROK     - success
+ *         RFAILED - failure
+ *
+ * ****************************************************************/
+
+uint8_t startDlDataForExperiment13()
+{
+   uint32_t teId = 0;
+   uint32_t duId;
+   uint8_t numOfSlice = 2;
+   uint8_t numOfPacket;
+   uint8_t ret = ROK;
+   uint8_t cnt = 0;
+   uint8_t i = 0;
+   uint16_t timerCnt = 0;
+   uint8_t tnlStage = 1;
+   int32_t totalNumOfTestFlow; 
+   EgtpTeIdCb *teidCb = NULLP;
+   
+   while(timerCnt < 1200)
+   {
+      totalNumOfTestFlow = 1;
+      while(totalNumOfTestFlow)
+      {
+         for(duId = 1; duId <= cuCb.cuCfgParams.egtpParams.numDu; duId++)
+         {
+            for(teId = 1; teId <= 4; teId++)
+            {
+               if(tnlStage == 1)
+               {
+                  if(teId == 1 || teId == 3)
+                  {
+                     numOfPacket = 5;
+                  }
+                  else
+                  {
+                     numOfPacket = 0;
+                  }
+               }
+               else if(tnlStage == 2)
+               {
+                  if(teId == 1 || teId == 3)
+                  {
+                     numOfPacket = 5;
+                  }
+                  else
+                  {
+                     numOfPacket = 5;
+                  }
+               }
+               else
+               {
+                  if(teId == 1 || teId == 3)
+                  {
+                     numOfPacket = 7;
+                  }
+                  else
+                  {
+                     numOfPacket = 3;
+                  }
+               }
+               teidCb = NULLP;
+               cmHashListFind(&(egtpCb.dstCb[duId-1].teIdLst), (uint8_t *)&(teId), sizeof(uint32_t), 0, (PTR *)&teidCb);
+               if(teidCb)
+               {
+                  cnt =0;
+                  //DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, teId);
+                  while(cnt < numOfPacket)
+                  {
+                     ret =  cuEgtpDatReq(duId, teId);      
+                     if(ret != ROK)
+                     {
+                        DU_LOG("\nERROR --> EGTP: Issue with teid=%d\n",teId);
+                        break;
+                     }
+                     /* TODO : sleep(1) will be removed later once we will be able to
+                     * support the continuous data pack transfer */
+                     //sleep(1);
+                     cnt++;
+                  }
+               }
+               else
+               {
+                  DU_LOG("\nDEBUG  -->  EGTP: TunnelId Not Found for (duId %d, teId:%d)\n", duId, teId);
+               }            
+            }
+         }
+         totalNumOfTestFlow--;
+      }
+      usleep(50000);
+      timerCnt++;
+      DU_LOG("\nDEBUG  -->  Timer Count: %d\n", timerCnt);
+      if(timerCnt % 400 == 0)
+      {
+         DU_LOG("\nDEBUG  -->  tnlStage: %d\n", tnlStage);
+         tnlStage++;
+      }
+   }
+   return ROK;
+}
+
+uint8_t startDlDataForExperiment21()
+{
+   uint32_t teId = 0;
+   uint32_t duId;
+   uint8_t numOfSlice = 2;
+   uint8_t numOfPacket;
+   uint8_t ret = ROK;
+   uint8_t cnt = 0;
+   uint8_t i = 0;
+   uint16_t timerCnt = 0;
+   uint8_t tnlStage = 1;
+   int32_t totalNumOfTestFlow; 
+   EgtpTeIdCb *teidCb = NULLP;
+   
+   while(timerCnt < 1200)
+   {
+      totalNumOfTestFlow = 1;
+      while(totalNumOfTestFlow)
+      {
+         for(duId = 1; duId <= cuCb.cuCfgParams.egtpParams.numDu; duId++)
+         {
+            for(teId = 1; teId <= 4; teId++)
+            {
+               if(tnlStage == 1)
+               {
+                  if(teId == 4)
+                  {
+                     numOfPacket = 5;
+                  }
+                  else if(teId == 2)
+                  {
+                     numOfPacket = 5;
+                  }
+                  else
+                  {
+                     numOfPacket = 5;
+                  }
+               }
+               else if(tnlStage == 2)
+               {
+                  if(teId == 4)
+                  {
+                     numOfPacket = 7;
+                  }
+                  else if(teId == 2)
+                  {
+                     numOfPacket = 3;
+                  }
+                  else
+                  {
+                     numOfPacket = 5;
+                  }
+               }
+               else
+               {
+                  if(teId == 4)
+                  {
+                     numOfPacket = 7;
+                  }
+                  else if(teId == 2)
+                  {
+                     numOfPacket = 3;
+                  }
+                  else
+                  {
+                     numOfPacket = 5;
+                  }
+               }
+               teidCb = NULLP;
+               cmHashListFind(&(egtpCb.dstCb[duId-1].teIdLst), (uint8_t *)&(teId), sizeof(uint32_t), 0, (PTR *)&teidCb);
+               if(teidCb)
+               {
+                  cnt =0;
+                  //DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, teId);
+                  while(cnt < numOfPacket)
+                  {
+                     ret =  cuEgtpDatReq(duId, teId);      
+                     if(ret != ROK)
+                     {
+                        DU_LOG("\nERROR --> EGTP: Issue with teid=%d\n",teId);
+                        break;
+                     }
+                     /* TODO : sleep(1) will be removed later once we will be able to
+                     * support the continuous data pack transfer */
+                     //sleep(1);
+                     cnt++;
+                  }
+               }
+               else
+               {
+                  DU_LOG("\nDEBUG  -->  EGTP: TunnelId Not Found for (duId %d, teId:%d)\n", duId, teId);
+               }            
+            }
+         }
+         totalNumOfTestFlow--;
+      }
+      usleep(50000);
+      timerCnt++;
+      DU_LOG("\nDEBUG  -->  Timer Count: %d\n", timerCnt);
+      if(timerCnt % 600 == 0)
+      {
+         DU_LOG("\nDEBUG  -->  tnlStage: %d\n", tnlStage);
+         tnlStage++;
+      }
+   }
+   return ROK;
+}
+
+/*******************************************************************
+ *
  * @brief Handles Console input
  *
  * @details
@@ -644,7 +885,7 @@ uint8_t startDlDataForExperiment11()
 void *cuConsoleHandler(void *args)
 {
    char ch;
-   uint8_t cnt = 0;
+   uint32_t cnt = 0;
    while(true) 
    {
       ch = getchar();
@@ -688,7 +929,7 @@ void *cuConsoleHandler(void *args)
          
          // while(true)
          // {
-         //    if(cnt >= 500)
+         //    if(cnt >= 750)
          //    {
          //       cnt = 0;
          //       break;
@@ -697,7 +938,7 @@ void *cuConsoleHandler(void *args)
          //    usleep(80000);
          //    cnt++;
          // }
-         startDlDataForExperiment11();
+         startDlDataForExperiment21();
 #endif
          continue;
       } 
