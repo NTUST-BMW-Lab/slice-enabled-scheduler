@@ -103,8 +103,6 @@ typedef struct schSliceBasedSliceCb
    SchRrmPolicyRatio rrmPolicyRatioInfo;
    SchAlgoMethod algoMethod; /* Specify the scheduling method (0: flat, 1: hierarchy) */
    SchAlgorithm algorithm; /* Specify the scheduling algorithm (0: Round Robin, 1: Weight Fair Queue) */
-   void (*schedulingAlgorithmforLc)(CmLListCp *lcInfoList, uint8_t numSymbols, uint16_t *availablePrb, \
-                                       bool *isTxPayloadLenAdded, bool *srRcvd);
 }SchSliceBasedSliceCb;
 
 typedef struct schSliceBasedDlThreadArg
@@ -115,7 +113,7 @@ typedef struct schSliceBasedDlThreadArg
    uint16_t *totalRemainingPrb;
    uint16_t maxFreePRB;
    SchSliceBasedSliceCb *sliceCb;
-   uint8_t ueId;
+   CmLListCp *ueDlNewTransmission;
 }SchSliceBasedDlThreadArg;
 
 typedef struct schSliceBasedUlThreadArg
