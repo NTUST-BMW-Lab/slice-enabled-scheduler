@@ -31,6 +31,8 @@ File:     sch_slice_based.c
 /** @file sch_slot_ind.c
   @brief This module processes slot indications
  */
+#include "time.h"
+#include "pthread.h"
 #include "common_def.h"
 #include "tfu.h"
 #include "lrg.h"
@@ -42,7 +44,7 @@ File:     sch_slice_based.c
 #include "sch.h"
 #include "sch_utils.h"
 #include "sch_slice_based.h"
-#include "pthread.h"
+
 #ifdef NR_DRX 
 #include "sch_drx.h"
 #endif
@@ -79,6 +81,7 @@ uint8_t schSliceBasedCellCfgReq(SchCellCb *cellCb)
 
    schSpcCellCb->timer_sec = 0;
    schSpcCellCb->slot_ind_count = 0;
+   schSpcCellCb->algoDelay = 0;
    schSpcCellCb->isTimerStart = false;
    return ROK;
 }
@@ -1838,6 +1841,9 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
    CmLList *sliceCbNode = NULLP; 
    SchSliceBasedSliceCb *sliceCb = NULLP;
 
+   // struct timespec start, start2, end;
+   // double processTime;
+
    /* Hard-coded the UE DL Retransmission LL for 1 UE per TTI */
    SchDlHqProcCb *ueNewHarqList[MAX_NUM_UE];
    ueNewHarqList[ueId-1] = *hqP;
@@ -1884,7 +1890,7 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
    maxFreePRB = searchLargestFreeBlock(ueNewHarqList[ueId-1]->hqEnt->cell, pdschTime, &startPrb, DIR_DL);
    totalRemainingPrb = maxFreePRB;
 
-   
+   // clock_gettime(1, &start);
    if (isRetx == FALSE)
    {
 
@@ -1917,9 +1923,12 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
          threadArg[currSliceCnt]->ueDlNewTransmission= &ueDlNewTransmission;
 
          /* Run the intra-slice scheduling with multi-thread feature */
+         // clock_gettime(1, &start2);
          threadRes = pthread_create(&intraSliceThread[currSliceCnt], NULL, schSliceBasedDlIntraSliceThreadScheduling, \
                                     (void *)threadArg[currSliceCnt]);
-
+         // clock_gettime(1, &end);
+         // processTime = (end.tv_sec - start2.tv_sec) + (end.tv_nsec - start2.tv_nsec) / BILLION_NUM;
+         // DU_LOG("\nDennis  -->  Measurement : Processing Time of pthread_create(): %f sec", processTime);
          if(threadRes != 0)
          {
             DU_LOG("\nERROR  -->  SCH : Thread Creation failed for intra-slice scheduling");
@@ -1930,6 +1939,7 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
          sliceCbNode = sliceCbNode->next;
       }
 
+      // clock_gettime(1, &start2);
       for(int sliceCnt=0; sliceCnt < schSpcCell->sliceCbList.count; sliceCnt++)
       {
          if (pthread_join(intraSliceThread[sliceCnt], NULL)) 
@@ -1941,9 +1951,10 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
          /* Garbage collection */
          SCH_FREE(threadArg[sliceCnt], sizeof(SchSliceBasedDlThreadArg));
       }
-
+      // clock_gettime(1, &end);
+      // processTime = (end.tv_sec - start2.tv_sec) + (end.tv_nsec - start2.tv_nsec) / BILLION_NUM;
+      // DU_LOG("\nDennis  -->  Measurement : Processing Time of all pthread_join(): %f sec", processTime);
 #else
-
          if(schSliceBasedDlIntraSliceScheduling(cell, pdcchTime, pdschNumSymbols, &totalRemainingPrb, maxFreePRB, sliceCb, &ueDlNewTransmission) != ROK)
          {
             DU_LOG("\nDennis --> DL Intra Slice Scheduling Failed");
@@ -1972,13 +1983,15 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
       }
    }
 
+   // clock_gettime(1, &end);
+   // processTime = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION_NUM;
+   // DU_LOG("\nDennis  -->  Measurement : Processing Time of all intra-slice scheduling: %f sec", processTime);
 
    if(schSliceBasedDlFinalScheduling(cell, pdschTime, pdcchTime, pucchTime, pdschStartSymbol, pdschNumSymbols, &ueDlNewTransmission, isRetx, ueNewHarqList, totalRemainingPrb, startPrb) != ROK)
    {
       DU_LOG("\nDennis --> DL Final Scheduling Failed");
       return false;
    }
-
    /* Free the hard-coded UE DL New Transmission LL for 1 UE per TTI */
    SCH_FREE(ueDlNewTransmission.first, sizeof(CmLList));
 
@@ -2019,6 +2032,10 @@ uint8_t schSliceBasedDlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pd
    DlMsgSchInfo *dciSlotAlloc;
    float_t totalUeWeight = 0;
    SchSliceBasedUeCb *ueSliceBasedCb = NULLP;
+
+   // struct timespec start, end;
+   // double processTime;
+   // clock_gettime(1, &start);
 
    /* Calculate the slice PRB quota according to RRMPolicyRatio and MaxFreePRB */
    sliceCb->dedicatedPrb = (uint16_t)(((sliceCb->rrmPolicyRatioInfo.dedicatedRatio)*(maxFreePRB))/100);
@@ -2102,6 +2119,10 @@ uint8_t schSliceBasedDlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pd
       *totalRemainingPrb = *totalRemainingPrb - sliceCb->dedicatedPrb;
    }
 
+   // clock_gettime(1, &end);
+   // processTime = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION_NUM;
+   // DU_LOG("\nDennis  -->  Measurement : Processing Time of per intra-slice scheduling: %f sec", processTime);
+
    return ROK;
 }
 
@@ -2139,6 +2160,11 @@ void *schSliceBasedDlIntraSliceThreadScheduling(void *threadArg)
    uint16_t maxFreePRB;
    SchSliceBasedSliceCb *sliceCb;
    CmLListCp *ueDlNewTransmission;
+
+
+   // struct timespec start, end;
+   // double processTime;
+   // clock_gettime(1, &start);
 
    dlThreadArg = (SchSliceBasedDlThreadArg *)threadArg;
    cellCb = dlThreadArg->cell;
@@ -2230,6 +2256,10 @@ void *schSliceBasedDlIntraSliceThreadScheduling(void *threadArg)
    {
       *totalRemainingPrb = *totalRemainingPrb - sliceCb->dedicatedPrb;
    }
+
+   // clock_gettime(1, &end);
+   // processTime = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION_NUM;
+   // DU_LOG("\nDennis  -->  Measurement : Processing Time of per intra-slice scheduling: %f sec", processTime);
 
    return ROK;
 }
@@ -3935,7 +3965,17 @@ uint8_t schSliceBasedRoundRobinAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLLis
    CmLList *next;
    CmLListCp casLcInfoList; /* Cascade LC Info LL */
    SchSliceBasedUeCb *ueSliceBasedCb = NULLP;
+   SchSliceBasedCellCb  *schSpcCell;
    uint16_t ueQuantum, remainingPrb;
+   
+   schSpcCell = (SchSliceBasedCellCb *)cellCb->schSpcCell;
+
+   // struct timespec start, end;
+   // double processTime;
+   // clock_gettime(1, &start);
+
+   /* For multi-thread and single thread comparison, delay the scheduling algorithm to show the advantage of multi-thread */
+   //usleep(schSpcCell->algoDelay);
 
    ueNode = ueList->first;
 
@@ -4016,6 +4056,9 @@ uint8_t schSliceBasedRoundRobinAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLLis
    {
       DU_LOG("\n In schSliceBasedRoundRobinAlgo(), invalid algoMethod");
    }
+   // clock_gettime(1, &end);
+   // processTime = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / BILLION_NUM;
+   // DU_LOG("\nDennis  -->  Measurement : Processing Time of RR Scheduling Algorithm: %f sec", processTime);
 }
 
 /*******************************************************************
@@ -4166,98 +4209,101 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
 
    schSpcCell->slot_ind_count++;
 
-   if(schSpcCell->slot_ind_count >= 500)
+   if(schSpcCell->slot_ind_count >= 30)
    {
-      schSpcCell->timer_sec++;
-      DU_LOG("\nDennis --> Timer: %d s", schSpcCell->timer_sec);
+      schSpcCell->algoDelay++;
       schSpcCell->slot_ind_count = 0;
    }
+   // if(schSpcCell->slot_ind_count >= 500)
+   // {
+   //    schSpcCell->timer_sec++;
+   //    DU_LOG("\nDennis --> Timer: %d s", schSpcCell->timer_sec);
+   //    schSpcCell->slot_ind_count = 0;
+   // }
 
-   if(schSpcCell->timer_sec == 30)
-   {
-      sliceCbNode = schSpcCell->sliceCbList.first;
+
+   // if(schSpcCell->timer_sec == 30)
+   // {
+   //    sliceCbNode = schSpcCell->sliceCbList.first;
       
-      while(sliceCbNode)
-      {
-         sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
+   //    while(sliceCbNode)
+   //    {
+   //       sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
          
-         /* Adjust the RRMPolicyRatio of first slice */
-         if(sliceCbNode == schSpcCell->sliceCbList.first)
-         {
-            // sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            // sliceCb->rrmPolicyRatioInfo.minRatio = 30;
-            // sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //       /* Adjust the RRMPolicyRatio of first slice */
+   //       if(sliceCbNode == schSpcCell->sliceCbList.first)
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
 
-         }
-         /* Adjust the RRMPolicyRatio of second slice */
-         else
-         {
-            // sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-            // sliceCb->rrmPolicyRatioInfo.minRatio = 50;
-            // sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-            sliceCb->algorithm = WFQ;
-         }
+   //       }
+   //       /* Adjust the RRMPolicyRatio of second slice */
+   //       else
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //          sliceCb->algorithm = WFQ;
+   //       }
 
-         sliceCbNode = sliceCbNode->next;
-      }
-   }
-   else if(schSpcCell->timer_sec == 40)
-   {
-      // sliceCbNode = schSpcCell->sliceCbList.first;
+   //       sliceCbNode = sliceCbNode->next;
+   //    }
+   // }
+   // else if(schSpcCell->timer_sec == 40)
+   // {
+   //    sliceCbNode = schSpcCell->sliceCbList.first;
 
-      // while(sliceCbNode)
-      // {
-      //    sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
+   //    while(sliceCbNode)
+   //    {
+   //       sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
          
-      //    /* Adjust the RRMPolicyRatio of first slice */
-      //    if(sliceCbNode == schSpcCell->sliceCbList.first)
-      //    {
-      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-      //       sliceCb->rrmPolicyRatioInfo.minRatio = 30;
-      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-      //    }
-      //    /* Adjust the RRMPolicyRatio of second slice */
-      //    else
-      //    {
-      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-      //       sliceCb->rrmPolicyRatioInfo.minRatio = 30;
-      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-      //    }
+   //       /* Adjust the RRMPolicyRatio of first slice */
+   //       if(sliceCbNode == schSpcCell->sliceCbList.first)
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //       }
+   //       /* Adjust the RRMPolicyRatio of second slice */
+   //       else
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 30;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //       }
 
-      //    sliceCbNode = sliceCbNode->next;
-      // }   
-   }
-   else if(schSpcCell->timer_sec == 60)
-   {    
-      // sliceCbNode = schSpcCell->sliceCbList.first;
+   //       sliceCbNode = sliceCbNode->next;
+   //    }   
+   // }
+   // else if(schSpcCell->timer_sec == 60)
+   // {    
+   //    sliceCbNode = schSpcCell->sliceCbList.first;
 
-      // while(sliceCbNode)
-      // {
-      //    sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
+   //    while(sliceCbNode)
+   //    {
+   //       sliceCb = (SchSliceBasedSliceCb *)sliceCbNode->node;
          
-      //    /* Adjust the RRMPolicyRatio of first slice */
-      //    if(sliceCbNode == schSpcCell->sliceCbList.first)
-      //    {
-      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-      //       sliceCb->rrmPolicyRatioInfo.minRatio = 50;
-      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-      //    }
-      //    /* Adjust the RRMPolicyRatio of second slice */
-      //    else
-      //    {
-      //       sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
-      //       sliceCb->rrmPolicyRatioInfo.minRatio = 50;
-      //       sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
-      //    }
+   //       /* Adjust the RRMPolicyRatio of first slice */
+   //       if(sliceCbNode == schSpcCell->sliceCbList.first)
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //       }
+   //       /* Adjust the RRMPolicyRatio of second slice */
+   //       else
+   //       {
+   //          sliceCb->rrmPolicyRatioInfo.dedicatedRatio = 10;
+   //          sliceCb->rrmPolicyRatioInfo.minRatio = 50;
+   //          sliceCb->rrmPolicyRatioInfo.maxRatio = 100;
+   //       }
 
-      //    sliceCbNode = sliceCbNode->next;
-      // }
+   //       sliceCbNode = sliceCbNode->next;
+   //    }
 
-      schSpcCell->timer_sec = 0;
-   }
-
-   
-   DU_LOG("");
+   //    schSpcCell->timer_sec = 0;
+   // }
 }
 
 /*******************************************************************

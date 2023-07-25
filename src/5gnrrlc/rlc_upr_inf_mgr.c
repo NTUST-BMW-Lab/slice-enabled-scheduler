@@ -895,7 +895,7 @@ RlcTptPerSnssai* rlcHandleSnssaiTputlist(RlcCb *gCb, Snssai *snssai, ActionTypeL
       snssaiNode = (RlcTptPerSnssai *)node->node;
       if(memcmp(snssaiNode->snssai, snssai, sizeof(Snssai)) == 0)
       { 
-         DU_LOG("\nDEBUG  -->  RLC : SNSSAI found in LL");
+         //DU_LOG("\nDEBUG  -->  RLC : SNSSAI found in LL");
          found = TRUE;
          break;
       }
@@ -1153,7 +1153,7 @@ RlcTptPerDrb* rlcHandleDrbTputlist(RlcCb *gCb, Snssai *snssai, uint8_t ueId, uin
       drbNode = (RlcTptPerDrb *)node->node;
       if(drbNode->lcId == lcId)
       { 
-         DU_LOG("\nDEBUG  -->  RLC : LC ID found in LL");
+         //DU_LOG("\nDEBUG  -->  RLC : LC ID found in LL");
          found = TRUE;
          break;
       }

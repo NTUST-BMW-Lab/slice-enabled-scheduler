@@ -375,7 +375,7 @@ uint8_t startDlData()
    uint32_t duId;
    uint8_t ret = ROK;
    uint8_t cnt = 0;
-   uint8_t numOfPackets = 8;
+   uint8_t numOfPackets = 3;
    int32_t totalNumOfTestFlow = 1; 
    EgtpTeIdCb *teidCb = NULLP;
    
@@ -390,7 +390,7 @@ uint8_t startDlData()
             if(teidCb)
             {
                cnt =0;
-               DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, teId);
+               //DU_LOG("\nDEBUG  -->  EGTP: Sending DL User Data(duId %d, teId:%d)\n", duId, teId);
                while(cnt < numOfPackets)
                {
                   ret =  cuEgtpDatReq(duId, teId);      
@@ -927,18 +927,18 @@ void *cuConsoleHandler(void *args)
           * totalDataPacket = totalNumOfTestFlow * NUM_TUNNEL_TO_PUMP_DATA * NUM_DL_PACKETS 
           * totalDataPacket = [500*9*1] */
          
-         // while(true)
-         // {
-         //    if(cnt >= 750)
-         //    {
-         //       cnt = 0;
-         //       break;
-         //    }
-         //    startDlData();
-         //    usleep(80000);
-         //    cnt++;
-         // }
-         startDlDataForExperiment21();
+         while(true)
+         {
+            if(cnt >= 1200)
+            {
+               cnt = 0;
+               break;
+            }
+            startDlData();
+            usleep(50000);
+            cnt++;
+         }
+         //startDlDataForExperiment21();
 #endif
          continue;
       } 

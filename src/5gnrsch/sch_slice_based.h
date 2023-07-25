@@ -18,7 +18,8 @@
 
 // #define SCH_MULTI_THREAD /* Enable the multi-thread intra-slice scheduling feature */
 // #define SLICE_BASED_DEBUG_LOG /* Enable the debug log */
- 
+// #define SLICE_BASED_PROCESSING_TIME_LOG /* Enable the processing time log */
+// #define BILLION_NUM  1000000000.0
 
 typedef enum
 {
@@ -41,7 +42,7 @@ typedef struct schSliceBasedCellCb
    bool isTimerStart;
    uint16_t slot_ind_count;
    uint16_t timer_sec;
-
+   uint16_t algoDelay;
 }SchSliceBasedCellCb;
 
 /*Following structures to keep record and estimations of PRB allocated for each
