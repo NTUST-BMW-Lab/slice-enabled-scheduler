@@ -375,7 +375,7 @@ uint8_t startDlData()
    uint32_t duId;
    uint8_t ret = ROK;
    uint8_t cnt = 0;
-   uint8_t numOfPackets = 3;
+   uint8_t numOfPackets = 5;
    int32_t totalNumOfTestFlow = 1; 
    EgtpTeIdCb *teidCb = NULLP;
    
@@ -927,18 +927,18 @@ void *cuConsoleHandler(void *args)
           * totalDataPacket = totalNumOfTestFlow * NUM_TUNNEL_TO_PUMP_DATA * NUM_DL_PACKETS 
           * totalDataPacket = [500*9*1] */
          
-         while(true)
-         {
-            if(cnt >= 1200)
-            {
-               cnt = 0;
-               break;
-            }
-            startDlData();
-            usleep(50000);
-            cnt++;
-         }
-         //startDlDataForExperiment21();
+         // while(true)
+         // {
+         //    if(cnt >= 1200)
+         //    {
+         //       cnt = 0;
+         //       break;
+         //    }
+         //    startDlData();
+         //    usleep(50000);
+         //    cnt++;
+         // }
+         startDlDataForExperiment21();
 #endif
          continue;
       } 

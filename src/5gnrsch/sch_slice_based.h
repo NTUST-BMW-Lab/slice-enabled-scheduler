@@ -20,6 +20,7 @@
 // #define SLICE_BASED_DEBUG_LOG /* Enable the debug log */
 // #define SLICE_BASED_PROCESSING_TIME_LOG /* Enable the processing time log */
 // #define BILLION_NUM  1000000000.0
+#define NUM_SLICE 3
 
 typedef enum
 {
@@ -32,18 +33,6 @@ typedef enum
    RR, /* Round Robin */
    WFQ /* Weight Fair Queue */
 }SchAlgorithm;
-
-typedef struct schSliceBasedCellCb
-{
-   CmLListCp     ueToBeScheduled;                   /*!< Linked list to store UEs pending to be scheduled */
-   CmLListCp     sliceCbList;                       /* Linked list to store slice control block with priority, the last node */
-
-   /* For thesis experiment */
-   bool isTimerStart;
-   uint16_t slot_ind_count;
-   uint16_t timer_sec;
-   uint16_t algoDelay;
-}SchSliceBasedCellCb;
 
 /*Following structures to keep record and estimations of PRB allocated for each
  * LC taking into consideration the RRM policies*/
@@ -108,14 +97,16 @@ typedef struct schSliceBasedSliceCb
 
 typedef struct schSliceBasedDlThreadArg
 {
+   uint8_t *triggerFlag;
    SchCellCb *cell;
-   SlotTimingInfo pdcchTime;
-   uint8_t pdschNumSymbols;
+   SlotTimingInfo *pdcchTime;
+   uint8_t *pdschNumSymbols;
    uint16_t *totalRemainingPrb;
-   uint16_t maxFreePRB;
+   uint16_t *maxFreePRB;
    SchSliceBasedSliceCb *sliceCb;
    CmLListCp *ueDlNewTransmission;
 }SchSliceBasedDlThreadArg;
+
 
 typedef struct schSliceBasedUlThreadArg
 {
@@ -127,6 +118,23 @@ typedef struct schSliceBasedUlThreadArg
    SchSliceBasedSliceCb *sliceCb;
    uint8_t ueId;
 }SchSliceBasedUlThreadArg;
+
+typedef struct schSliceBasedCellCb
+{
+   CmLListCp     ueToBeScheduled;                   /*!< Linked list to store UEs pending to be scheduled */
+   CmLListCp     sliceCbList;                       /* Linked list to store slice control block with priority, the last node */
+
+   /* For thesis experiment */
+   bool isTimerStart;
+   uint16_t slot_ind_count;
+   uint16_t timer_sec;
+   uint16_t algoDelay;
+
+   /* For thread creating */
+   SchSliceBasedDlThreadArg *threadArg[NUM_SLICE];
+   pthread_t intraSliceThread[NUM_SLICE];
+   
+}SchSliceBasedCellCb;
 
 uint8_t schSliceBasedAddUeToSchedule(SchCellCb *cellCb, uint16_t ueIdToAdd);
 void SchSliceBasedSliceCfgReq(SchCellCb *cellCb);
