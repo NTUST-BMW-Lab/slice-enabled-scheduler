@@ -24,6 +24,8 @@
 #endif
 
 /* MACROS */
+#define GNB_ID  1 /* As per 38.423,Sec 9.2.2.1, gnbId range b/w 0 to 4294967295 */
+
 #define DU_INST 0
 #define DU_ID 1
 
@@ -46,7 +48,6 @@
 //TODO: while testing for TDD, Mu1 and 100 MHz, this flag must be enabled
 #ifdef NR_TDD
 #define DUPLEX_MODE DUP_MODE_TDD
-#define NR_NUMEROLOGY 1
 #define NR_DL_ARFCN 623400
 #define NR_UL_ARFCN 623400
 #define NR_FREQ_BAND 78
@@ -54,7 +55,6 @@
 #define NR_BANDWIDTH BANDWIDTH_100MHZ
 #else
 #define DUPLEX_MODE DUP_MODE_FDD
-#define NR_NUMEROLOGY 0
 #define NR_DL_ARFCN 428000
 #define NR_UL_ARFCN 390000
 #define NR_FREQ_BAND 1
@@ -76,7 +76,8 @@
 #define SUL_ARFCN 100
 #define SUL_BAND 2
 
-#define TIME_CFG 0
+#define TIME_CFG 4
+#define MEAS_TIMING_ARFCN 630432
 #define CARRIER_IDX 1
 #define NUM_TX_ANT 2
 #define NUM_RX_ANT 2
@@ -253,7 +254,7 @@
 #define PHR_PROHIBHIT_TMR 0
 #define PHR_PWR_FACTOR_CHANGE 3
 #define PHR_MODE_OTHER_CG 0
-#define SN_FIELD_LEN 1
+#define SN_FIELD_LEN_12BIT 0 /*As per Spec 38.331, The network configures only value size12 in SN-FieldLengthAM for SRB */
 #define T_POLL_RETRANSMIT 8       /* Enum for 45ms */ 
 #define T_POLL_RETRANSMIT_VAL 45  /* Value in ms */
 #define POLL_PDU 0                /* Enum for 4 pdus */
@@ -714,7 +715,7 @@ typedef struct f1DuCellInfo
    uint16_t           tac;          /* tracking area code */
    uint16_t           epsTac;       /* Configured EPS TAC */
    NrModeInfo         f1Mode;       /* NR mode info : FDD/TDD */
-   uint8_t            measTimeCfg;  /* Measurement timing configuration */
+   uint8_t            measTimeCfgDuration;  /* Measurement timing configuration */
    F1CellDir          cellDir;      /* Cell Direction */
    F1CellType         cellType;     /* Cell Type */
    F1BrdcstPlmnInfo   brdcstPlmnInfo[MAX_BPLMN_NRCELL_MINUS_1]; /* Broadcast PLMN Identity Info List */
@@ -1240,6 +1241,7 @@ typedef struct sib1Params
    long      cellResvdForOpUse;
    long      connEstFailCnt;
    long      connEstFailOffValidity;
+   long      connEstFailOffset;
    SiSchedInfo           siSchedInfo;
    SrvCellCfgCommSib     srvCellCfgCommSib;
 }Sib1Params;
@@ -1250,7 +1252,7 @@ typedef struct duCfgParams
    F1EgtpParams       egtpParams;                  /* EGTP Params */
    uint32_t           maxUe;
    uint32_t           duId;
-   uint8_t            duName[CU_DU_NAME_LEN_MAX];
+   char               *duName;
    SchedulerCfg       schedCfg;
    F1DuSrvdCellInfo   srvdCellLst[MAX_NUM_CELL];  /* Serving cell list *///TODO: this must be removed eventually
    F1RrcVersion       rrcVersion;                 /* RRC version */
@@ -1259,15 +1261,6 @@ typedef struct duCfgParams
    Sib1Params         sib1Params;                 /* SIB1 Params */
    MacSliceCfgReq     tempSliceCfg;
 }DuCfgParams;
-
-typedef struct f1SetupMsg
-{
-   uint8_t f1MsgReqBufSize;
-   char    *f1MsgReqBuf; 
-   uint8_t f1MsgRspBufSize;
-   char    *f1MsgRspBuf;
-}F1SetupMsg;
-
 
 #ifndef O1_ENABLE
 //RRM POLICY STRUCT

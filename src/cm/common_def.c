@@ -228,11 +228,11 @@ uint8_t convertScsValToScsEnum(uint32_t num)
 }
 
 /*******************************************************************
- * @brief convert scs periodicity value into the enum value received from O1 
+ * @brief convert SSB periodicity value into the enum value received from O1 
  *
  * @details
  *
- *    Function : convertScsPeriodicityToEnum
+ *    Function : convertSSBPeriodicityToEnum
  *
  *    Functionality:
  *       - convert scs periodicity value 
@@ -242,30 +242,30 @@ uint8_t convertScsValToScsEnum(uint32_t num)
  *         RFAILED - failure
  *
  * ****************************************************************/
-uint8_t convertScsPeriodicityToEnum(uint32_t num)
+uint8_t convertSSBPeriodicityToEnum(uint32_t num)
 {
    switch(num)
    {
       case 5:
-         return SCS_5MS;
+         return SSB_5MS;
 
       case 10:
-         return SCS_10MS;
+         return SSB_10MS;
 
       case 20:
-         return SCS_20MS;
+         return SSB_20MS;
 
       case 40:
-         return SCS_40MS;
+         return SSB_40MS;
 
       case 80:
-         return SCS_80MS;
+         return SSB_80MS;
 
       case 160:
-         return SCS_160MS;
+         return SSB_160MS;
 
       default:
-         return SCS_5MS;
+         return SSB_5MS;
    }
 }
 /*******************************************************************
@@ -447,16 +447,16 @@ uint32_t convertArfcnToFreqKhz(uint32_t arfcn)
    uint8_t indexTable = 0;
    uint32_t freq = 0;
 
-   for(indexTable = 0; indexTable < 4; indexTable++)
+   for(indexTable = 0; indexTable < 3; indexTable++)
    {
       if(arfcn <= arfcnFreqTable[indexTable][4])
       {
-         freq = arfcnFreqTable[indexTable][2] + (arfcnFreqTable[indexTable][1] * (arfcn - arfcnFreqTable[indexTable][3]));
-         return (freq*1000);
+         freq = (arfcnFreqTable[indexTable][2] * 1000) + (arfcnFreqTable[indexTable][1] * (arfcn - arfcnFreqTable[indexTable][3]));
+         return (freq);
       }
    }
    DU_LOG("ERROR  -->  DUAPP: ARFCN vaid range is between 0 and 3279165");
-   return (freq*1000);
+   return (freq);
 }
 
 
@@ -472,7 +472,7 @@ uint32_t convertArfcnToFreqKhz(uint32_t arfcn)
 *                  3GPP TS 38.104, Table 5.4.2.1-1
 *       Formula: NREF = NREF-Offs +  (FREF – FREF-Offs) / ΔFGlobal
 *
-* @params[in] uint32_t Freq(MHZ)
+* @params[in] uint32_t Freq(kHZ)
 *
 * @return [out] uint32_t ARFCN(number)
 *
@@ -482,11 +482,11 @@ uint32_t convertFreqToArfcn(uint32_t freq)
    uint8_t indexTable = 0;
    uint32_t arfcn = 0;
 
-   for(indexTable = 0; indexTable < 4; indexTable++)
+   for(indexTable = 0; indexTable < 3; indexTable++)
    {
-      if(freq < arfcnFreqTable[indexTable][0])
+      if(freq < (arfcnFreqTable[indexTable][0] * 1000))
       {
-         arfcn = arfcnFreqTable[indexTable][3] + ((freq - arfcnFreqTable[indexTable][2]) / (arfcnFreqTable[indexTable][1]));
+         arfcn = arfcnFreqTable[indexTable][3] + ((freq - (arfcnFreqTable[indexTable][2] * 1000)) / (arfcnFreqTable[indexTable][1]));
          return (arfcn);
       }
    }

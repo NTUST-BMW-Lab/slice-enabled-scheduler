@@ -513,7 +513,7 @@ uint8_t rlcUtlSendToMac(RlcCb *gCb, SuId suId, KwDStaIndInfo *staIndInfo)
                   if(snssaiTputNode != NULLP)
                   {
                      snssaiTputNode->dataVol += staIndTb->lchStaInd[count].totBufSize;
-                     //DU_LOG("\nINFO   -->  RLC_DL: SNSSAI List Grant:%d, lcId:%d, total :%ld",\
+                     DU_LOG("\nINFO   -->  RLC_DL: SNSSAI List Grant:%d, lcId:%d, total :%ld",\
                            staIndTb->lchStaInd[count].totBufSize, staIndTb->lchStaInd[count].lcId,\
                            snssaiTputNode->dataVol);
 
@@ -717,8 +717,6 @@ uint8_t rlcUtlSendDedLcBoStatus(RlcCb *gCb, RlcDlRbCb *rbCb, int32_t bo, \
    boStatus->bo = bo + estHdrSz;
 
    FILL_PST_RLC_TO_MAC(pst, RLC_DL_INST, EVENT_BO_STATUS_TO_MAC);
-
-   //DU_LOG("\nDennis --> RLC: Send the Bo Status to MAC triggered by new PDU");
    /* Send Status Response to MAC layer */
    if(RlcSendBoStatusToMac(&pst, boStatus) != ROK)
    {
