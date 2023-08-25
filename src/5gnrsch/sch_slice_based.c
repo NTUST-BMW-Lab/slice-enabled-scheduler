@@ -28,8 +28,8 @@ File:     sch_slice_based.c
 
  **********************************************************************/
 
-/** @file sch_slot_ind.c
-  @brief This module processes slot indications
+/** @file sch_slice_based.c
+  @brief This file process the slice-based scheduler
  */
 #include "time.h"
 #include "pthread.h"
@@ -120,7 +120,7 @@ void schSliceBasedCellDelReq(SchCellCb *cellCb)
    cellCb->schSpcCell = NULLP;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Function to handle UE configuration request
  *
@@ -131,11 +131,12 @@ void schSliceBasedCellDelReq(SchCellCb *cellCb)
  *    Functionality: Adds/Configures UE parameters required for
  *       Slice Based scheduling
  *
- * @params[in] Pointer to UE control block
+ * @param[in]  ueCb  Pointer to UE control block
+ * 
  * @return ROK
  *         RFAILED
  *
- * ****************************************************************/
+ **/
 uint8_t SchSliceBasedAddUeConfigReq(SchUeCb *ueCb)
 {
    SchSliceBasedUeCb *ueSliceBasedCb;
@@ -188,7 +189,7 @@ void SchSliceBasedModUeConfigReq(SchUeCb *ueCb)
    return;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Handles Slice configuration request
  *
@@ -198,10 +199,10 @@ void SchSliceBasedModUeConfigReq(SchUeCb *ueCb)
  *
  *    Functionality: Calculate the available PRB quotas for each slice when receiving Slice Configuration Request from MAC
  *
- * @params[in] Pointer to Cell control block
+ * @param[in]  cellCb   Pointer to Cell control block
  * @return void
  *
- * ****************************************************************/
+ **/
 void SchSliceBasedSliceCfgReq(SchCellCb *cellCb)
 {
    CmLList *sliceCfg = NULLP;
@@ -270,8 +271,6 @@ void SchSliceBasedSliceCfgReq(SchCellCb *cellCb)
             rrmPolicyNode->snssai.sst, rrmPolicyNode->snssai.sd[0], rrmPolicyNode->snssai.sd[1], \
             rrmPolicyNode->snssai.sd[2], rrmPolicyNode->rrmPolicyRatioInfo.maxRatio, \
             rrmPolicyNode->rrmPolicyRatioInfo.minRatio, rrmPolicyNode->rrmPolicyRatioInfo.dedicatedRatio);
-      // DU_LOG("\nDennis --> SCH: Calculate PRB quota: Total PRB of Bandwidth:%d, Shared PRB Quota:%d, Prioritized PRB Quota:%d, Dedicated PRB Quota:%d",\
-      // MAX_NUM_RB, sliceCbToStore->sharedPrb, sliceCbToStore->prioritizedPrb, sliceCbToStore->dedicatedPrb);
 
       sliceCfg = sliceCfg->next;
    }
@@ -290,7 +289,7 @@ void SchSliceBasedSliceCfgReq(SchCellCb *cellCb)
    return;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Handles Slice Reconfiguration request
  *
@@ -300,10 +299,10 @@ void SchSliceBasedSliceCfgReq(SchCellCb *cellCb)
  *
  *    Functionality: Calculate the available PRB quotas for each slice when receiving Slice Reconfiguration Request from MAC
  *
- * @params[in] Pointer to Cell control block
+ * @param[in]  cellCb   Pointer to Cell control block
  * @return void
  *
- * ****************************************************************/
+ **/
 void SchSliceBasedSliceRecfgReq(SchCellCb *cellCb)
 {
    CmLList *sliceCfg = NULLP;
@@ -333,9 +332,6 @@ void SchSliceBasedSliceRecfgReq(SchCellCb *cellCb)
             rrmPolicyNode->snssai.sst, rrmPolicyNode->snssai.sd[0], rrmPolicyNode->snssai.sd[1], \
             rrmPolicyNode->snssai.sd[2], rrmPolicyNode->rrmPolicyRatioInfo.maxRatio, \
             rrmPolicyNode->rrmPolicyRatioInfo.minRatio, rrmPolicyNode->rrmPolicyRatioInfo.dedicatedRatio);
-            
-            // DU_LOG("\nDennis --> SCH: Calculate PRB quota: Total PRB of Bandwidth:%d, Shared PRB Quota:%d, Prioritized PRB Quota:%d, Dedicated PRB Quota:%d",\
-            // MAX_NUM_RB, sliceCbNode->sharedPrb, sliceCbNode->prioritizedPrb, sliceCbNode->dedicatedPrb);
             
             break;
          }
@@ -1308,7 +1304,7 @@ uint32_t schSliceBasedScheduleDlLc(SlotTimingInfo pdcchTime, SlotTimingInfo pdsc
    return accumalatedSize;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Scheduling of Slots in UL And DL 
  *
@@ -1319,12 +1315,13 @@ uint32_t schSliceBasedScheduleDlLc(SlotTimingInfo pdcchTime, SlotTimingInfo pdsc
  *    Functionality: Scheduling of slots in UL and DL specific to 
  *       Slice Based scheduling
  *
- * @params[in] Pointer to Cell
- *             Slot timing info
- *             Scheduler instance
+ * @param[in]  cell     Pointer to Cell
+ * @param[in]  slotInd  Current slot timing info
+ * @param[in]  schInst  Scheduler instance
+ * 
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedScheduleSlot(SchCellCb *cell, SlotTimingInfo *slotInd, Inst schInst)
 {
    SchSliceBasedCellCb  *schSpcCell;
@@ -1530,7 +1527,7 @@ void schSliceBasedScheduleSlot(SchCellCb *cell, SlotTimingInfo *slotInd, Inst sc
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Fill the lcInfo into corresponding slice control block for each UE
  *
@@ -1543,12 +1540,13 @@ void schSliceBasedScheduleSlot(SchCellCb *cell, SlotTimingInfo *slotInd, Inst sc
  *       Moreover, LCs are ordered from higher priority(lower priority level) to 
  *       lower priority(higher priority level)
  *
- * @params[in] Pointer to Slice Control Block List
- *             Pointer to UE Control Block
+ * @param[in]  sliceCbList Pointer to Slice Control Block List
+ * @param[in]  ueCb        Pointer to UE Control Block
+ * 
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedFillLcInfoToSliceCb(CmLListCp *sliceCbList, SchUeCb *ueCb)
 {
    CmLList *sliceCbNode;
@@ -1608,7 +1606,7 @@ uint8_t schSliceBasedFillLcInfoToSliceCb(CmLListCp *sliceCbList, SchUeCb *ueCb)
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Get the default priority level according to the 5QI mapping table
  *
@@ -1616,12 +1614,13 @@ uint8_t schSliceBasedFillLcInfoToSliceCb(CmLListCp *sliceCbList, SchUeCb *ueCb)
  *
  *    Function : schSliceBasedCalculatePriorLevel
  *
- *    Functionality: Get the default priority level according to the 5QI mapping table
+ *    Functionality: Get the default priority leve4l according to the 5QI mapping table
  *
- * @params[in] 5QI value
+ * @param[in]  fiveQi   5QI value
+ * 
  * @return Priority Level
  *
- * ****************************************************************/
+ **/
 uint16_t schSliceBasedCalculatePriorLevel(uint16_t fiveQi)
 {
    uint8_t fiveQiIdx;
@@ -1635,7 +1634,7 @@ uint16_t schSliceBasedCalculatePriorLevel(uint16_t fiveQi)
    return fiveQiTable[fiveQiIdx][1];
 }
 
-/*******************************************************************
+/**
  *
  * @brief Sort the logical channel according to priority level within a slice
  *
@@ -1645,11 +1644,12 @@ uint16_t schSliceBasedCalculatePriorLevel(uint16_t fiveQi)
  *
  *    Functionality: Sort the logical channel according to priority level within a slice
  *
- * @params[in] Pointer to LC Info Control Block List
- * @params[in] Sum of priority level of each LC within a slice
+ * @param[in]  lcInfoList        Pointer to LC Info Control Block List
+ * @param[in]  totalPriorLevel   Sum of priority level of each LC within a slice
+ * 
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedSortLcByPriorLevel(CmLListCp *lcInfoList, float_t totalPriorLevel)
 {
    CmLList *outerNode = NULLP, *interNode, *minPriorNode = NULLP, *tempNode; 
@@ -1728,7 +1728,7 @@ void schSliceBasedSortLcByPriorLevel(CmLListCp *lcInfoList, float_t totalPriorLe
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Sort the UE according to the weight
  *
@@ -1738,12 +1738,13 @@ void schSliceBasedSortLcByPriorLevel(CmLListCp *lcInfoList, float_t totalPriorLe
  *
  *    Functionality: Sort the UE according to the weight
  *
- * @params[in] Pointer to cell control block
- * @params[in] Pointer to UE List
- * @params[in] Sum of weight of each UE
+ * @param[in]  cellCb         Pointer to cell control block
+ * @param[in]  ueList         Pointer to UE List
+ * @param[in]  totalWeight    Sum of weight of each UE
+ * 
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedSortUeByWeight(SchCellCb *cellCb, CmLListCp *ueList, float_t totalWeight)
 {
    CmLList *outerNode = NULLP, *interNode, *maxWeightNode = NULLP, *tempNode;
@@ -1826,7 +1827,7 @@ void schSliceBasedSortUeByWeight(SchCellCb *cellCb, CmLListCp *ueList, float_t t
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Main DL scheduling function
  *
@@ -1845,15 +1846,16 @@ void schSliceBasedSortUeByWeight(SchCellCb *cellCb, CmLListCp *ueList, float_t t
  *       [Step7]: Run the final scheduling to allocate the remaining resource
  *                and fill the scheduling result
  * 
- * @params[in] I/P > Pointer to Cell Control Block
- *             I/P > Slot timing info
- *             I/P > UE ID
- *             I/P > Retransmission Flag
- *             I/P > The address of pointer to DL HARQ Process Control Block
+ * @param[in]  cell        Pointer to Cell Control Block
+ * @param[in]  currTime    Current slot timing info
+ * @param[in]  ueId        UE ID
+ * @param[in]  isRetx      Retransmission Flag
+ * @param[in]  hqP         The address of pointer to DL HARQ Process Control Block
+ * 
  * @return true     - success
  *         false    - failure
  *
- * ****************************************************************/
+ **/
 bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t ueId, bool isRetx, SchDlHqProcCb **hqP)
 {
    uint8_t pdschNumSymbols = 0, pdschStartSymbol = 0;
@@ -1986,7 +1988,7 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
    return true;
 }
 
-/*******************************************************************
+/**
  *
  * @brief a. Allocate the dedicated resource and prioritized resource for this slice
  *        to achieve the resource isolation between slice
@@ -2008,18 +2010,18 @@ bool schSliceBasedDlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
  *                a. Dedicated resource can not share to other slice
  *                b. Unused prioritized resource can share to other slice
  * 
- * @params[in] I/P > Pointer to Cell Control Block
- *             I/P > PDCCH Slot timing info
- *             I/P > Number of PDSCH Symbols
- *             I/P > UE DL New Transmission LL
- *             I/P > Number of PRB of Max FreePRB Block
- *             I/P & O/P > Total remaining PRB after finishing intra-slice scheduling
- *             I/P & O/P > Pointer to slice control block to store the information of this slice
+ * @param[in]    cellCb               Pointer to Cell Control Block
+ * @param[in]    pdcchTime            PDCCH Slot timing info
+ * @param[in]    pdschNumSymbols      Number of PDSCH Symbols
+ * @param[in]    ueDlNewTransmission  UE DL New Transmission LL
+ * @param[in]    maxFreePRB           Number of PRB of Max FreePRB Block
+ * @param[out]   totalRemainingPrb    Total remaining PRB after finishing intra-slice scheduling
+ * @param[out]   sliceCb              Pointer to slice control block to store the information of this slice
  * 
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedDlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pdcchTime, uint8_t pdschNumSymbols, \
                                             CmLListCp *ueDlNewTransmission, uint16_t maxFreePRB, uint16_t *totalRemainingPrb,\
                                             SchSliceBasedSliceCb *sliceCb)
@@ -2122,7 +2124,7 @@ uint8_t schSliceBasedDlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pd
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief a. Allocate the dedicated resource and prioritized resource for this slice
  *        to achieve the resource isolation between slice
@@ -2145,10 +2147,10 @@ uint8_t schSliceBasedDlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pd
  *                a. Dedicated resource can not share to other slice
  *                b. Unused prioritized resource can share to other slice
  *
- * @params[in] Pointer to thread argument
+ * @param[in]  threadArg   Pointer to thread argument
  * @return void
  *
- * ****************************************************************/
+ **/
 void *schSliceBasedDlIntraSliceThreadScheduling(void *threadArg)
 {
    SchSliceBasedDlThreadArg *dlThreadArg;
@@ -2279,7 +2281,7 @@ void *schSliceBasedDlIntraSliceThreadScheduling(void *threadArg)
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Final scheduling
  *
@@ -2303,23 +2305,22 @@ void *schSliceBasedDlIntraSliceThreadScheduling(void *threadArg)
  *       [Step8]: Allocate the PUCCH resource for HARQ to this UE
  *       [Step9]: Reset the BO of each LC and boIndBitMap for this UE
  * 
- * @params[in] I/P > Pointer to Cell Control Block
- *             I/P > PDSCH Slot timing info
- *             I/P > PDCCH Slot timing info
- *             I/P > PUCCH Slot timing info
- *             I/P > Strat PDSCH Symbols
- *             I/P > Number of PDSCH Symbols
- *             I/P > Number of PDSCH Symbols
- *             I/P > UE DL New Transmission LL
- *             I/P > Retransmission Flag
- *             I/P > Double Pointer to HARQ DL Process Controll Block List
- *             I/P > Remaining PRBs after intra-slice scheduling
- *             I/P > Start PRB Index
+ * @param[in]  cellCb            Pointer to Cell Control Block
+ * @param[in]  pdschTime         PDSCH Slot timing info
+ * @param[in]  pdcchTime         PDCCH Slot timing info
+ * @param[in]  pucchTime         PUCCH Slot timing info
+ * @param[in]  pdschStartSymbol  Strat PDSCH Symbols
+ * @param[in]  pdschNumSymbols   Number of PDSCH Symbols
+ * @param[in]  pdschNumSymbols   UE DL New Transmission LL
+ * @param[in]  isRetx            Retransmission Flag
+ * @param[in]  ueNewHarqList     Double Pointer to HARQ DL Process Controll Block List
+ * @param[in]  remainingPrb      Remaining PRBs after intra-slice scheduling
+ * @param[in]  startPrb          Start PRB Index
  * 
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedDlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo pdschTime, SlotTimingInfo pdcchTime, \
                                        SlotTimingInfo pucchTime, uint8_t pdschStartSymbol, uint8_t pdschNumSymbols, 
                                        CmLListCp *ueDlNewTransmission, bool isRetx, SchDlHqProcCb **ueNewHarqList, \
@@ -2663,7 +2664,7 @@ uint8_t schSliceBasedDlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo pdschTi
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Main UL scheduling
  *
@@ -2673,16 +2674,16 @@ uint8_t schSliceBasedDlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo pdschTi
  *
  *    Functionality: Main UL scheduling
  *
- * @params[in] Pointer to Cell Control Block
- *             Slot timing info
- *             UE ID
- *             Retransmission boolean
- *             The address of pointer to UL HARQ Process Control Block
+ * @param[in]  cell     Pointer to Cell Control Block
+ * @param[in]  currTime Current Slot timing info
+ * @param[in]  ueId     UE ID
+ * @param[in]  isRetx   Retransmission boolean
+ * @param[in]  hqP      The address of pointer to UL HARQ Process Control Block
  * 
  * @return true     - success
  *         false    - failure
  *
- * ****************************************************************/
+ **/
 bool schSliceBasedUlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t ueId, bool isRetx, \
                               SchUlHqProcCb **hqP)
 {
@@ -2855,7 +2856,7 @@ bool schSliceBasedUlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
    return true;
 }
 
-/*******************************************************************
+/**
  *
  * @brief UL Intra-slice scheduling
  *
@@ -2865,17 +2866,17 @@ bool schSliceBasedUlScheduling(SchCellCb *cell, SlotTimingInfo currTime, uint8_t
  *
  *    Functionality: UL Intra-slice scheduling
  *
- * @params[in] Pointer to Cell Control Block
- *             Current Slot timing info
- *             PDCCH Slot timing info
- *             Number of PDSCH Symbols
- *             Max FreePRB Block
- *             Pointer to Slice Control Block
- *             UE ID
+ * @param[in]  cellCb            Pointer to Cell Control Block
+ * @param[in]  puschTime         PUSCH Slot timing info
+ * @param[in]  puschNumSymbols   Number of PDSCH Symbols
+ * @param[out] totalRemainingPrb Total remaining PRB
+ * @param[in]  maxFreePRB        Max FreePRB Block
+ * @param[in]  sliceCb           Pointer to Slice Control Block
+ * @param[in]  ueId              UE ID
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedUlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo puschTime, uint8_t puschNumSymbols, \
                                             uint16_t *totalRemainingPrb, uint16_t maxFreePRB, \
                                             SchSliceBasedSliceCb *sliceCb, uint8_t ueId)
@@ -2930,7 +2931,7 @@ uint8_t schSliceBasedUlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pu
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief UL Intra-slice scheduling for multi-thread feature
  *
@@ -2940,10 +2941,10 @@ uint8_t schSliceBasedUlIntraSliceScheduling(SchCellCb *cellCb, SlotTimingInfo pu
  *
  *    Functionality: UL Intra-slice scheduling for multi-thread feature
  *
- * @params[in] Pointer to thread argument
+ * @param[in]  threadArg   Pointer to thread argument
  * @return void
  *
- * ****************************************************************/
+ **/
 void *schSliceBasedUlIntraSliceThreadScheduling(void *threadArg)
 {
    uint16_t crnti = 0;
@@ -3018,7 +3019,7 @@ void *schSliceBasedUlIntraSliceThreadScheduling(void *threadArg)
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief UL Final scheduling
  *
@@ -3028,22 +3029,21 @@ void *schSliceBasedUlIntraSliceThreadScheduling(void *threadArg)
  *
  *    Functionality: UL Final scheduling
  *
- * @params[in] Pointer to Cell Control Block
- *             PUSCH Slot timing info
- *             DCI Slot timing info
- *             Number of PUSCH Symbols
- *             Max FreePRB Block
- *             Pointer to Slice Control Block
- *             UE ID
- *             Retranmission Flag
- *             Double Pointer to HARQ UL Process Controll Block
- *             Remaining PRBs after intra-slice scheduling
- *             Start PRB Index
+ * @param[in] cellCb      Pointer to Cell Control Block
+ * @param[in] puschTime   PUSCH Slot timing info
+ * @param[in] dciTime     DCI Slot timing info
+ * @param[in] puschStartSymbol     PUSCH Start Symbol
+ * @param[in] puschNumSymbols      Number of PUSCH Symbols
+ * @param[in] ueId        UE ID
+ * @param[in] isRetx      Retransmission Flag
+ * @param[in] hqP         Double Pointer to HARQ UL Process Controll Block
+ * @param[in] remainingPrb         Remaining PRBs after intra-slice scheduling
+ * @param[in] startPrb    Start PRB Index
  * 
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedUlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo puschTime, SlotTimingInfo dciTime, \
                   uint8_t puschStartSymbol, uint8_t puschNumSymbols, uint8_t ueId, \
                   bool isRetx, SchUlHqProcCb **hqP, uint16_t remainingPrb, uint16_t startPrb)
@@ -3226,7 +3226,7 @@ uint8_t schSliceBasedUlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo puschTi
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Update the req BO for Lcinfo list for each slice
  *
@@ -3236,13 +3236,14 @@ uint8_t schSliceBasedUlFinalScheduling(SchCellCb *cellCb, SlotTimingInfo puschTi
  *
  *    Functionality: Update the req BO for Lcinfo list for each slice
  * 
- * @params[in] Pointer to LC Info Control Block List
- *             Pointer to UE Control Block
- *             Direction
+ * @param[out] lcInfoList     Pointer to LC Info Control Block List
+ * @param[in]  ueCb     Pointer to UE Control Block
+ * @param[in]  dir      Direction
+ * 
  * @return ROK     - success
  *         RFAILED - failure
  *
- * ****************************************************************/
+ **/
 uint8_t schSliceBasedUpdateLcListReqBo(CmLListCp *lcInfoList, SchUeCb *ueCb, Direction dir)
 {
    CmLList *node = NULLP; 
@@ -3311,7 +3312,7 @@ uint8_t schSliceBasedUpdateLcListReqBo(CmLListCp *lcInfoList, SchUeCb *ueCb, Dir
    return ROK;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Allocate PRB for each LC with FCFS algorithm (allocate the PRB by demand)
  *
@@ -3333,16 +3334,16 @@ uint8_t schSliceBasedUpdateLcListReqBo(CmLListCp *lcInfoList, SchUeCb *ueCb, Dir
  *      [Loop Exit]:
  *        [Exit1]: If PRBs are exhausted
  *
- * @params[in] I/P & O/P > Pointer to LC Info Control Block List
- *             I/P > MCS Index
- *             I/P > Number of PDSCH symbols 
- *             I/P > Number of available PRB
- *             I/P > isTxPayloadLenAdded[For DL] : Decision flag to add the TX_PAYLOAD_HDR_LEN
- *             I/P > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
+ * @param[out] lcInfoList    Pointer to LC Info Control Block List
+ * @param[in]  mcsIdx      MCS Index
+ * @param[in]  numSymbols     Number of PDSCH symbols 
+ * @param[out] availablePrb      Number of available PRB
+ * @param[in]  isTxPayloadLenAdded     isTxPayloadLenAdded[For DL] : Decision flag to add the TX_PAYLOAD_HDR_LEN
+ * @param[in]  srRcvd      srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
  * 
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedPrbAllocUsingRRMPolicy(CmLListCp *lcInfoList, uint16_t mcsIdx, uint8_t numSymbols, uint16_t *availablePrb, \
                                        bool *isTxPayloadLenAdded, bool *srRcvd)
 {
@@ -3418,7 +3419,7 @@ void schSliceBasedPrbAllocUsingRRMPolicy(CmLListCp *lcInfoList, uint16_t mcsIdx,
    return;
 }
 
-/*******************************************************************************************
+/**
  *
  * @brief Check the LC List and fill the LC and GrantSize to be sent to MAC as
  * BO Report
@@ -3432,14 +3433,15 @@ void schSliceBasedPrbAllocUsingRRMPolicy(CmLListCp *lcInfoList, uint16_t mcsIdx,
  *                BO Report in dlMsgAlloc Pointer
  *             2. Reset the lcInfoList after filling the scheduling result to DCI
  *
- * @params[in] I/P > lcLinkList pointer (LcInfo list)
- *             I/P & O/P > dlMsgAlloc[for DL](Pending LC to be added in this context) 
- *             I/P & O/P > BsrInfo (applicable for UL)
- *             I/P & O/P > accumalatedBOSize
- *             I/P > isDedicated Flag
+ * @param[in]  lcLL     lcLinkList pointer (LcInfo list)
+ * @param[out]  dlMsgAlloc     [for DL](Pending LC to be added in this context) 
+ * @param[out]  bsrInfo    BsrInfo(applicable for UL)
+ * @param[out]  accumalatedBOSize    accumalatedBOSize
+ * @param[in]  isDedicated    isDedicated Flag
+ * 
  * @return void
  *
- * *******************************************************************************************/
+ **/
 void schSliceBasedUpdateGrantSizeForBoRpt(CmLListCp *lcLL, DlMsgSchInfo *dlMsgAlloc,\
                                     BsrInfo *bsrInfo, uint32_t *accumalatedBOSize, bool isDedicated)
 {
@@ -3572,7 +3574,7 @@ void schSliceBasedUpdateGrantSizeForBoRpt(CmLListCp *lcLL, DlMsgSchInfo *dlMsgAl
    return;
 }
 
-/*******************************************************************
+/**
  *
  * @brief Allocate PRB for each LC with Round Robin alogrithm (equally allocating PRB)
  *
@@ -3595,15 +3597,15 @@ void schSliceBasedUpdateGrantSizeForBoRpt(CmLListCp *lcLL, DlMsgSchInfo *dlMsgAl
  *          [Exit1]: If available PRBs are exhausted
  *          [Exit2]: All LCs are allocated and has no reqBO 
  * 
- * @params[in] I/P & O/P > Pointer to LC Info Control Block List
- *             I/P > Number of PDSCH symbols
- *             I/P > Number of available PRB
- *             I/P > isTxPayloadLenAdded Flag: Check whether the TxPayload should be added to the first node in current slice
- *             I/P > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
+ * @param[out] lcInfoList     Pointer to LC Info Control Block List
+ * @param[in]  numSymbols     Number of PDSCH symbols
+ * @param[out] availablePrb   Number of available PRB
+ * @param[in]  isTxPayloadLenAdded  isTxPayloadLenAdded Flag: Check whether the TxPayload should be added to the first node in current slice
+ * @param[in]  srRcvd      srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
  *
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedRoundRobinAlgoforLc(CmLListCp *lcInfoList, uint8_t numSymbols, uint16_t *availablePrb, \
                                        bool *isTxPayloadLenAdded, bool *srRcvd)
 {
@@ -3756,7 +3758,7 @@ void schSliceBasedRoundRobinAlgoforLc(CmLListCp *lcInfoList, uint8_t numSymbols,
 
 }
 
-/*******************************************************************
+/**
  *
  * @brief Allocate PRB for each LC with WFQ alogrithm (proportionally allocating PRB based on weight)
  *
@@ -3780,15 +3782,15 @@ void schSliceBasedRoundRobinAlgoforLc(CmLListCp *lcInfoList, uint8_t numSymbols,
  *          [Exit1]: If available PRBs are exhausted
  *          [Exit2]: All LCs are allocated and has no reqBO 
  * 
- * @params[in] I/P & O/P > Pointer to LC Info Control Block List
- *             I/P > Number of PDSCH symbols
- *             I/P > Number of available PRB
- *             I/P > isTxPayloadLenAdded Flag: Check whether the TxPayload should be added to the first node in current slice
- *             I/P > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
+ * @param[out] lcInfoList   Pointer to LC Info Control Block List
+ * @param[in]  numSymbols     Number of PDSCH symbols
+ * @param[out] availablePrb     Number of available PRB
+ * @param[in]  isTxPayloadLenAdded     isTxPayloadLenAdded Flag: Check whether the TxPayload should be added to the first node in current slice
+ * @param[in]  srRcvd       srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE
  * 
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedWeightedFairQueueAlgoforLc(CmLListCp *lcInfoList, uint8_t numSymbols, uint16_t *availablePrb, \
                                        bool *isTxPayloadLenAdded, bool *srRcvd)
 {
@@ -3946,7 +3948,7 @@ void schSliceBasedWeightedFairQueueAlgoforLc(CmLListCp *lcInfoList, uint8_t numS
 
 
 
-/****************************************************************************
+/**
  *
  * @brief Calculate the Estimated TBS Size based on Spec 38.421 , Sec 5.3.1.2
  *
@@ -3959,15 +3961,16 @@ void schSliceBasedWeightedFairQueueAlgoforLc(CmLListCp *lcInfoList, uint8_t numS
  *       will give the PRB value(from 0 to maxRB) one by one and 
  *       try to find the TBS size closest to reqBO
  *
- * @params[in] I/P > reqBO, mcsIdx, num PDSCH symbols, 
- *             I/P > maxRB: Maximum PRB count to reach for calculating the TBS
- *             O/P > estPrb : Suitable PRB count for reaching the correct TBS
- *       
+ * @param[in]  reqBO    Requested Buffer Occupancy
+ * @param[in]  mcsIdx      MCS Index of this UE
+ * @param[in]  numSymbols     Number of symbols
+ * @param[in]  maxPRB      Max number of PRB
+ * @param[out]  estPrb     Estimated PRB (result)     
  *
  * @return TBS Size > Size which will can be allocated for this LC
  *        
  *
- *************************************************************************/
+ **/
 uint32_t schSliceBasedcalculateEstimateTBSize(uint32_t reqBO, uint16_t mcsIdx, uint8_t numSymbols,\
                                    uint16_t maxPRB, uint16_t *estPrb)
 {
@@ -4004,7 +4007,7 @@ uint32_t schSliceBasedcalculateEstimateTBSize(uint32_t reqBO, uint16_t mcsIdx, u
    return (effecBO);
 }
 
-/*******************************************************************
+/**
  *
  * @brief Allocate resource for each UE and LC with RR algorithm (equally allocating PRB)
  *
@@ -4018,17 +4021,17 @@ uint32_t schSliceBasedcalculateEstimateTBSize(uint32_t reqBO, uint16_t mcsIdx, u
  *                Hierarchy: Consider the UE level to scheduler resource which means allocate resource based on UE LL               
  *       2. Run the scheduling for LC      
  * 
- * @params[in] I/P > Pointer to Cell Control Block
- *             I/P > Pointer to UE List
- *             I/P > Pointer to LC Info Control Block List
- *             I/P > Number of PDSCH symbols
- *             I/P & O/P > Number of available PRB and output remaining PRB
- *             I/P > Scheduling Method (0:Flat, 1:Hierarchy)
- *             I/P > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE   
+ * @param[in]  cellCb Pointer to Cell Control Block
+ * @param[in]  ueList Pointer to UE List
+ * @param[in]  lcInfoList Pointer to LC Info Control Block List
+ * @param[in]  numSymbols Number of PDSCH symbols
+ * @param[out] availablePrb Number of available PRB and output remaining PRB
+ * @param[in]  algoMethod Scheduling Method (0:Flat, 1:Hierarchy)
+ * @param[in]  srRcvd srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE   
  *   
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedRoundRobinAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLListCp *lcInfoList, uint8_t numSymbols, \
                                  uint16_t *availablePrb, SchAlgoMethod algoMethod, bool *srRcvd)
 {
@@ -4127,7 +4130,7 @@ void schSliceBasedRoundRobinAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLListCp
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Allocate resource for each UE and LC with WeightFairQueue algorithm 
  *        (Proportionally allocating resource by weight)
@@ -4142,17 +4145,17 @@ void schSliceBasedRoundRobinAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLListCp
  *                Hierarchy: Consider the UE level to scheduler resource which means allocate resource based on UE LL               
  *       2. Run the scheduling for LC      
  * 
- * @params[in] I/P > Pointer to Cell Control Block
- *             I/P > Pointer to UE List
- *             I/P > Pointer to LC Info Control Block List
- *             I/P > Number of PDSCH symbols
- *             I/P & O/P > Number of available PRB and output remaining PRB
- *             I/P > Scheduling Method (0:Flat, 1:Hierarchy)
- *             I/P > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE   
+ * @param[in] cellCb Pointer to Cell Control Block
+ * @param[in] ueList Pointer to UE List
+ * @param[in] lcInfoList Pointer to LC Info Control Block List
+ * @param[in] numSymbols Number of PDSCH symbols
+ * @param[out] availablePrb > Number of available PRB and output remaining PRB
+ * @param[in] algoMethod > Scheduling Method (0:Flat, 1:Hierarchy)
+ * @param[in] srRcvd > srRcvd Flag[For UL] : Decision flag to add UL_GRANT_SIZE   
  *     
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedWeightedFairQueueAlgo(SchCellCb *cellCb, CmLListCp *ueList, CmLListCp *lcInfoList, uint8_t numSymbols, \
                                  uint16_t *availablePrb, SchAlgoMethod algoMethod, bool *srRcvd)
 {
@@ -4255,7 +4258,7 @@ void schSliceBasedWeightedFairQueueAlgo(SchCellCb *cellCb, CmLListCp *ueList, Cm
    }
 }
 
-/*******************************************************************
+/**
  *
  * @brief Timer for experiment
  *
@@ -4265,11 +4268,11 @@ void schSliceBasedWeightedFairQueueAlgo(SchCellCb *cellCb, CmLListCp *ueList, Cm
  *
  *    Functionality: Timer for experiment
  *
- * @params[in] Pointer to Cell
+ * @param[in] cell Pointer to Cell
  *            
  * @return void
  *
- * ****************************************************************/
+ **/
 void setRrmPolicyWithTimer(SchCellCb *cell)
 {
    SchSliceBasedCellCb  *schSpcCell;
@@ -4377,7 +4380,7 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
 
 }
 
-/*******************************************************************
+/**
  *
  * @brief Initializes all function pointers to Slice Based function handler
  *
@@ -4388,10 +4391,10 @@ void setRrmPolicyWithTimer(SchCellCb *cell)
  *    Functionality: Initializes all function pointers to Slice Based 
  *       function handler
  *
- * @params[in] Function pointer array
+ * @param[in] allSliceBasedApi Function pointer array
  * @return void
  *
- * ****************************************************************/
+ **/
 void schSliceBasedAllApisInit(SchAllApis *allSliceBasedApi)
 {
     /* Interface API function pointers */

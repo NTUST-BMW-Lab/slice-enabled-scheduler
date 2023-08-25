@@ -29,8 +29,8 @@ File:     sch_fcfs.c
 
  **********************************************************************/
 
-/** @file sch_slot_ind.c
-  @brief This module processes slot indications
+/** @file sch_fcfs.c
+  @brief This file process the FCFS scheduler
  */
 #include "common_def.h"
 #include "tfu.h"
